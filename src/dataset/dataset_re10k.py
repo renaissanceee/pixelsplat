@@ -106,6 +106,8 @@ class DatasetRE10k(IterableDataset):
                         extrinsics,
                         intrinsics,
                     )
+                    # print("context_indices, target_indices")
+                    # print(context_indices, target_indices)
                 except ValueError:
                     # Skip because the example doesn't have enough frames.
                     continue

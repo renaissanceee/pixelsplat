@@ -66,16 +66,17 @@ class GaussianAdapter(nn.Module):
         h, w = image_shape
         pixel_size = 1 / torch.tensor((w, h), dtype=torch.float32, device=device)
         multiplier = self.get_scale_multiplier(intrinsics, pixel_size)
-        scales = scales * depths[..., None] * multiplier[..., None]
+        # import pdb;pdb.set_trace()
+        scales = scales * depths[..., None] * multiplier[..., None]# ([1, 2, 65536, 1, 1, 3]*[1, 2, 65536, 1, 3,1]-> [1, 2, 65536, 1, 3,3]
 
         # Normalize the quaternion features to yield a valid quaternion.
         rotations = rotations / (rotations.norm(dim=-1, keepdim=True) + eps)
 
-        sh = rearrange(sh, "... (xyz d_sh) -> ... xyz d_sh", xyz=3)
-        sh = sh.broadcast_to((*opacities.shape, 3, self.d_sh)) * self.sh_mask
+        sh = rearrange(sh, "... (xyz d_sh) -> ... xyz d_sh", xyz=3)#[1,2,65536,1,1,75]->[1,2,65536,1,1,3,25]
+        sh = sh.broadcast_to((*opacities.shape, 3, self.d_sh)) * self.sh_mask#[1,2,65536,1,3,3,25]
 
         # Create world-space covariance matrices.
-        covariances = build_covariance(scales, rotations)
+        covariances = build_covariance(scales, rotations)#[1,2,65536,1,3,3,3]
         c2w_rotations = extrinsics[..., :3, :3]
         covariances = c2w_rotations @ covariances @ c2w_rotations.transpose(-1, -2)
 
@@ -86,7 +87,7 @@ class GaussianAdapter(nn.Module):
         return Gaussians(
             means=means,
             covariances=covariances,
-            harmonics=rotate_sh(sh, c2w_rotations[..., None, :, :]),
+            harmonics=rotate_sh(sh, c2w_rotations[..., None, :, :]),#[1, 2, hw, 1, 3, 3, 25]
             opacities=opacities,
             # Note: These aren't yet rotated into world space, but they're only used for
             # exporting Gaussians to ply files. This needs to be fixed...

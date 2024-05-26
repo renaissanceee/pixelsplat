@@ -55,7 +55,6 @@ class ViewSamplerArbitrary(ViewSampler[ViewSamplerArbitraryCfg]):
             size=(self.cfg.num_target_views,),
             device=device,
         )
-
         # Allow the target views to be fixed.
         if self.cfg.target_views is not None:
             assert len(self.cfg.target_views) == self.cfg.num_target_views

@@ -146,6 +146,8 @@ def generate_image_grid(
 
 
 def generate_image_comparison():
+    import pdb;
+    pdb.set_trace()
     rows = []
     for experiment in ("re10k", "acid"):
         cfg_dict = compose(
@@ -193,6 +195,7 @@ def generate_image_comparison():
                     image = load_image(
                         method.path / scene / f"color/{target_index:0>6}.png"
                     )
+
                 except FileNotFoundError:
                     image = None
 

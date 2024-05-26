@@ -3,6 +3,7 @@ from pathlib import Path
 from typing import Literal, Optional, Type, TypeVar
 
 from dacite import Config, from_dict
+
 from omegaconf import DictConfig, OmegaConf
 
 from .dataset.data_module import DataLoaderCfg, DatasetCfg
@@ -66,7 +67,6 @@ def load_typed_config(
         OmegaConf.to_container(cfg),
         config=Config(type_hooks={**TYPE_HOOKS, **extra_type_hooks}),
     )
-
 
 def separate_loss_cfg_wrappers(joined: dict) -> list[LossCfgWrapper]:
     # The dummy allows the union to be converted.

@@ -141,26 +141,27 @@ class EncoderEpipolar(Encoder[EncoderEpipolarCfg]):
         features = features + rearrange(skip, "(b v) c h w -> b v c h w", b=b, v=v)
 
         # Sample depths from the resulting features.
-        features = rearrange(features, "b v c h w -> b v (h w) c")
+        features = rearrange(features, "b v c h w -> b v (h w) c")# depths[1,2,65536,128]
+        # import pdb;pdb.set_trace()
         depths, densities = self.depth_predictor.forward(
             features,
             context["near"],
             context["far"],
             deterministic,
             1 if deterministic else self.cfg.gaussians_per_pixel,
-        )
+        )# depths[1,2,65536,1,3]->[b,v,hw,c,gaussians_per_pixle]
 
         # Convert the features and depths into Gaussians.
         xy_ray, _ = sample_image_grid((h, w), device)
         xy_ray = rearrange(xy_ray, "h w xy -> (h w) () xy")
         gaussians = rearrange(
-            self.to_gaussians(features),
+            self.to_gaussians(features),#[1,2,65536,84]
             "... (srf c) -> ... srf c",
             srf=self.cfg.num_surfaces,
-        )
+        )#[1,2,65536,1,84]
         offset_xy = gaussians[..., :2].sigmoid()
         pixel_size = 1 / torch.tensor((w, h), dtype=torch.float32, device=device)
-        xy_ray = xy_ray + (offset_xy - 0.5) * pixel_size
+        xy_ray = xy_ray + (offset_xy - 0.5) * pixel_size#[1,2,65536,1,2]
         gpp = self.cfg.gaussians_per_pixel
         gaussians = self.gaussian_adapter.forward(
             rearrange(context["extrinsics"], "b v i j -> b v () () () i j"),
@@ -172,7 +173,7 @@ class EncoderEpipolar(Encoder[EncoderEpipolarCfg]):
             (h, w),
         )
 
-        # Dump visualizations if needed.
+        # Dump visualizations if needed. (not exe)
         if visualization_dump is not None:
             visualization_dump["depth"] = rearrange(
                 depths, "b v (h w) srf s -> b v h w srf s", h=h, w=w
@@ -186,7 +187,7 @@ class EncoderEpipolar(Encoder[EncoderEpipolarCfg]):
             if self.cfg.use_epipolar_transformer:
                 visualization_dump["sampling"] = sampling
 
-        # Optionally apply a per-pixel opacity.
+        # Optionally apply a per-pixel opacity.--> all 1
         opacity_multiplier = (
             rearrange(self.to_opacity(features), "b v r () -> b v r () ()")
             if self.cfg.predict_opacity
@@ -197,10 +198,10 @@ class EncoderEpipolar(Encoder[EncoderEpipolarCfg]):
             rearrange(
                 gaussians.means,
                 "b v r srf spp xyz -> b (v r srf spp) xyz",
-            ),
+            ),#([1,393216,3])
             rearrange(
                 gaussians.covariances,
-                "b v r srf spp i j -> b (v r srf spp) i j",
+                "b v r srf spp i j -> b (v r srf spp) i j",#[1,2,65536,1,3,3,3]->
             ),
             rearrange(
                 gaussians.harmonics,

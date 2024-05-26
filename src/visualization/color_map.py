@@ -3,6 +3,7 @@ from colorspacious import cspace_convert
 from einops import rearrange
 from jaxtyping import Float
 from matplotlib import cm
+# import matplotlib.cm  #JJ
 from torch import Tensor
 
 
@@ -11,6 +12,7 @@ def apply_color_map(
     color_map: str = "inferno",
 ) -> Float[Tensor, "*batch 3"]:
     cmap = cm.get_cmap(color_map)
+    # cmap = matplotlib.cm.get_cmap(color_map)#JJ
 
     # Convert to NumPy so that Matplotlib color maps can be used.
     mapped = cmap(x.detach().clip(min=0, max=1).cpu().numpy())[..., :3]

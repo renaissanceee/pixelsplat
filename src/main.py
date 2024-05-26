@@ -11,6 +11,7 @@ from lightning.pytorch.callbacks import LearningRateMonitor, ModelCheckpoint
 from lightning.pytorch.loggers.wandb import WandbLogger
 from lightning.pytorch.plugins.environments import SLURMEnvironment
 from omegaconf import DictConfig, OmegaConf
+torch.backends.cudnn.enabled = False
 
 # Configure beartype and jaxtyping.
 with install_import_hook(
@@ -101,7 +102,7 @@ def train(cfg_dict: DictConfig):
         enable_progress_bar=False,
         gradient_clip_val=cfg.trainer.gradient_clip_val,
         max_steps=cfg.trainer.max_steps,
-        plugins=[SLURMEnvironment(auto_requeue=False)],
+        # plugins=[SLURMEnvironment(auto_requeue=False)],
     )
     torch.manual_seed(cfg_dict.seed + trainer.global_rank)
 

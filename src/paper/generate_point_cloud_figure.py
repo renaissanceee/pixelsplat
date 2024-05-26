@@ -52,7 +52,7 @@ POINT_DENSITY = 0.5
 
 @hydra.main(
     version_base=None,
-    config_path="../../config",
+    config_path="/cluster/work/cvl/jiezcao/jiameng/pixelsplat/config/generate_evaluation_index.yaml",
     config_name="main",
 )
 def generate_point_cloud_figure(cfg_dict):
